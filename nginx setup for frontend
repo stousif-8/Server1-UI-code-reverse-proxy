@@ -1,0 +1,45 @@
+#Note: this setup applies only for connecting frontend server (UI server) to backend server (API server)
+
+npm run build
+#copying the files
+scp -r /home/ec2-user/my-frontend/build/ ec2-user@18.141.12.202:/home/ec2-user/
+
+#installing nginx 
+sudo yum update -y
+sudo yum install -y nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+#now Prepare Your Frontend Build
+#Copy the frontend build files to the Nginx default HTML directory
+sudo mv /home/ec2-user/my-frontend/build/* /usr/share/nginx/html/
+
+#now we should configure nginx and navigate to directory of nginx
+cd /etc/nginx/conf.d/
+#now we neeed to edit by creating a new conf file inside conf.d/ folder
+sudo vi frontend.conf
+server {
+    listen 80;
+    server_name 18.141.12.202;  # Replace with your server's public IP
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://172.31.20.254:3000/;  # Replace with your API server's private IP
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+#make sure to Replace placeholders with your actual IP addresses in above proxy pass and servername 
+
+#then check the Nginx configuration to ensure there are no syntax errors.
+sudo nginx -t
+
+sudo systemctl restart nginx
+#restart the nginx server with above command or below
+sudo systemctl reload nginx
