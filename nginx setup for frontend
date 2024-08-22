@@ -3,6 +3,7 @@
 npm run build
 #copying the files
 scp -r /home/ec2-user/my-frontend/build/ ec2-user@18.141.12.202:/home/ec2-user/
+#this above is not necessary required 
 
 #installing nginx 
 sudo yum update -y
